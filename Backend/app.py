@@ -1,15 +1,18 @@
 from flask import Flask, request, send_file
 import speech_recognition as sr
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import subprocess
 from flask_cors import CORS
 from pydub import AudioSegment
 import os
+import pyttsx3  # Add this import
 
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:5173'])
 avatar_name = None
 avatar_context = None
+
+# Explicitly set ffmpeg path (already fixed earlier)
+AudioSegment.ffmpeg = r"C:\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe"
 
 # Load DialoGPT model and tokenizer
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
@@ -25,7 +28,7 @@ def setAvatar():
 
 def speech_to_text(audio_file):
     r = sr.Recognizer()
-    with sr.AudioFile(audio_file) as source:  # Changed from sr.WaveFile to sr.AudioFile
+    with sr.AudioFile(audio_file) as source:
         audio = r.record(source)
     try:
         text = r.recognize_sphinx(audio)
@@ -41,30 +44,27 @@ def generate_response(user_input, context):
     return response
 
 def text_to_speech(text, output_file):
-    subprocess.run(["espeak", "-v", "en-us", "-w", output_file, text])
+    engine = pyttsx3.init()
+    engine.save_to_file(text, output_file)  # Save directly to MP3
+    engine.runAndWait()
 
 @app.route("/process-audio", methods=["POST"])
 def processAudio():
-    # Get the audio file from the request
     audio_file = request.files["audio"]
-    input_path = "input.webm"  # Save as WebM initially, assuming react-media-recorder default
+    input_path = "input.webm"
     audio_file.save(input_path)
     
-    # Convert WebM to WAV using pydub
     wav_path = "input.wav"
     audio = AudioSegment.from_file(input_path, format="webm")
     audio.export(wav_path, format="wav")
     
-    # Process the WAV file
     user_input = speech_to_text(wav_path)
     response_text = generate_response(user_input, avatar_context)
     text_to_speech(response_text, "response.mp3")
     
-    # Clean up temporary files
     os.remove(input_path)
     os.remove(wav_path)
     
-    # Send the response audio back to the frontend
     return send_file("response.mp3", mimetype="audio/mp3")
 
 if __name__ == "__main__":
