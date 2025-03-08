@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+
+# Flask and environment variables
+instance/
+*.log
+*.sqlite3
+*.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+
+# Python cache
+pip-log.txt
+pip-delete-this-directory.txt
+
+# MacOS system files
+.DS_Store
+
+# Pytest and coverage reports
+.coverage
+htmlcov
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log
+
+# Build files
+.next/
+out/
+
+# Editor settings
+.vscode/
+.idea/
+
+# Environment files
+.env.local
+.env.development
+.env.production
+
+# Logs
+logs
+*.log
